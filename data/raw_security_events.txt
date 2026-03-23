@@ -1,0 +1,32 @@
+EVT-1001 ; ThinkPad-T14 ; high ; open ; 5 ; auth_module
+EVT-1002,ThinkCentre-M90q,low,closed,0,agent
+EVT-1003 | Yoga-7i | CRIT | analysis | 8 | lsbd_collector
+
+EVT-1004 ; Legion-5 ; medium ; open ; 2 ; endpoint
+evt-1005 ; ideapad-3 ; HIGH ; done ; 4 ; auth_module
+EVT-1006 ; ThinkPad-X1 ; critical ; in_progress ; 7 ; SOC_PIPELINE
+
+BAD LINE WITHOUT PROPER FORMAT
+
+EVT-1007 ; ThinkBook-14 ; med ; open ; x ; collector
+EVT-1008 ; ; high ; open ; 3 ; auth_module
+EVT-1009 ; V15 ; low ; closed ; 1 ; endpoint
+
+ EVT-1010 ; ThinkPad-L14 ; critical ; open ; 11 ; auth_module
+EVT-1011;Yoga-Slim-7;medium;resolved;0;lsbd_collector
+EVT-1012|ThinkStation-P3|HIGH|OPEN|6|agent
+
+id=EVT-1013 ; device=ThinkPad-E14 ; severity=low ; status=open ; failed=2 ; source=auth_module
+id=EVT-1014 ; device=ThinkCentre-M70s ; severity=critical ; status=analysis ; failed=9 ; source=soc_pipeline
+
+EVT-1015 ; Lenovo-Unknown ; ??? ; open ; 2 ; agent
+EVT-1016 ; ThinkPad-T480 ; high ; closed ; 0 ; auth_module
+EVT-1017 ; Yoga-9 ; crit ; open ; 12 ; auth_module
+EVT-1018 ; ThinkBook-13x ; medium ; open ; 3 ; agent
+
+EVT-1019 ; ThinkPad-P1 ; low ; closed ; 1 ; endpoint
+EVT-1020 ; Legion-Slim ; HIGH ; OPEN ; 5 ; lsbd_collector
+
+EVT-1021 ; ThinkPad-T14 ; medium ; open ; 2
+EVT-1022 ; ThinkPad-X13 ; low ; open ; 0 ; auth_module ; EXTRA_FIELD
+EVT-1023 ; ThinkPad-X13
