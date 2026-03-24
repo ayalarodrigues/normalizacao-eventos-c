@@ -14,6 +14,18 @@ typedef struct{
     int is_valid;
 } SecurityEvent;
 
+// --- Função para inicializar a struct
+// Importante para não ficar com memória suja no início 
+void init_event(SecurityEvent *event){
+    event -> event_id[0] = '\0';
+    event -> device[0] = '\0';
+    event -> severity[0] = '\0';
+    event -> status[0] = '\0';
+    event -> source[0] = '\0';
+    event -> failed_logins = 0;
+    event -> is_valid = 0;
+}
+
 // --- Função para limpar os espaços do texto ---
 
 // remove espaços do começo e do fim
@@ -84,6 +96,26 @@ void normalize_status(char *status){
     ) {
         status[0] = '\0';
     }
+}
+
+int is_number(const char *text){
+    if(*text == '\0'){
+        return 0;
+    }
+
+    while(*text){
+        if(!isdigit((unsigned char)*text)){
+            return 0;
+        }
+
+        text++;
+    }
+
+    return 1;
+}
+
+int parse_delimited_line(char *line, SecurityEvent *__event){
+    
 }
 
 
