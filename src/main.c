@@ -114,13 +114,93 @@ int is_number(const char *text){
     return 1;
 }
 
-int parse_delimited_line(char *line, SecurityEvent *__event){
-    
+int parse_delimited_line(char *line, SecurityEvent *event){
+    for (int i = 0; line[i] != '\0'; i++){
+        if(line[i] == ',' || line[i] == '|'){
+            line[i] = ';';
+        }
+    }
+
+    char *fields[10];
+    int count = 0;
+
+    char *token = strtok(line, ";");
+    while(token != NULL && count < 10){
+        trim_whitespace(token);
+        fields[count++] = token;
+        token = strtok(NULL, ";");
+    }
+
+    if(count != 6){
+        return 0;
+    }
+
+    strcpy(event -> event_id, fields[0]);
+    strcpy(event -> device, fields[1]);
+    strcpy(event -> severity, fields[2]);
+    strcpy(event -> status, fields[3]);
+
+    if(is_number(fields[4])){
+        event -> failed_logins = atoi(fields[4]);
+    } else{
+        event -> failed_logins = 0;
+    }
+
+    strcpy(event -> source, fields[5]);
+
+    trim_whitespace(event -> event_id);
+    trim_whitespace(event -> device);
+    trim_whitespace(event -> severity);
+    trim_whitespace(event -> status);
+    trim_whitespace(event -> source);
+
+    to_uppercase(event -> event_id);
+    to_uppercase(event -> source);
+    normalize_severity(event -> severity);
+    normalize_status(event -> status);
+
+    if(
+        event -> event_id[0] == '\0' ||
+        event -> device[0] == '\0' ||
+        event -> severity[0] == '\0' ||
+        event -> status[0] == '\0' 
+    ) {
+        return 0;
+    }
+    event -> is_valid = 1;
+    return 1;
 }
 
 
-
 int main(void) {
+    char line1[] = "EVT-1001 ; ThinkPad-T14 ; high ; open ; 5 ; auth_module";
+    char line2[] = "EVT-1003 | Yoga-7i | CRIT | analysis | 8 | lsbd_collector";
+    char line3[] = "EVT-1008 ; ; high ; open ; 3 ; auth_module";
+
+    SecurityEvent event;
+
+    init_event(&event);
+    if (parse_delimited_line(line1, &event)) {
+        printf("%s | %s | %s | %s | %d | %s\n",
+               event.event_id, event.device, event.severity,
+               event.status, event.failed_logins, event.source);
+    }
+
+    init_event(&event);
+    if (parse_delimited_line(line2, &event)) {
+        printf("%s | %s | %s | %s | %d | %s\n",
+               event.event_id, event.device, event.severity,
+               event.status, event.failed_logins, event.source);
+    }
+
+    init_event(&event);
+    printf("Linha 3 valida? %d\n", parse_delimited_line(line3, &event));
+
+    return 0;
+}
+
+
+    /*
 
     char severity1[16] = " high";
     char severity2[16] = "crit";
@@ -139,12 +219,14 @@ int main(void) {
 
     return 0;
 
+    */
+
     /*
      //Abrir o arquivo e ler linha por linha
     FILE *file = fopen("data/raw_security_events.txt", "r");
 
     if(file == NULL){
-        printf("Não foi possível abrir data/raw_security_events.txt\n");
+        printf("Erro ao abrir o arquivo data/raw_security_events.txt\n");
         return 1;
     }
 
@@ -156,7 +238,7 @@ int main(void) {
         printf("Linha %d: %s", total_lines, line);   
     }
 
-    fclose(file);
+    fclose(file); // Desconecta e devolve o recurso ao sistema
 
     printf("\nTotal de linhas lidas: %d\n", total_lines);
 
@@ -164,4 +246,3 @@ int main(void) {
 
     */
 
-}
