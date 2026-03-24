@@ -114,6 +114,18 @@ int is_number(const char *text){
     return 1;
 }
 
+int is_blank_line(const char *line){
+    while(*line){
+        if(!isspace((unsigned char)*line)){
+            return 0;
+        }
+        line++;
+    }
+
+    return 1;
+
+}
+
 int parse_delimited_line(char *line, SecurityEvent *event){
     for (int i = 0; line[i] != '\0'; i++){
         if(line[i] == ',' || line[i] == '|'){
@@ -220,6 +232,8 @@ int parse_key_value_line(char *line, SecurityEvent *event){
         }
     }
 
+    /*
+
     trim_whitespace(event -> event_id);
     trim_whitespace(event -> device);
     trim_whitespace(event -> severity);
@@ -242,15 +256,89 @@ int parse_key_value_line(char *line, SecurityEvent *event){
         return 0;
     }
 
+    
+
     event -> is_valid = 1;
+
+    */
+
     return 1;
     
     
 }
 
+int parse_line_to_event(const char *line, SecurityEvent *event){
+    char buffer[512];
+
+    strcpy(buffer, line);
+    buffer[strcspn(buffer, "\r\n")] = '\0';
+    trim_whitespace(buffer);
+
+    if(buffer[0] == '\0'){
+        return 0;
+    }
+
+    init_event(event);
+
+    int parsed = 0;
+
+    if(strchr(buffer, '=')!= NULL){
+        parsed = parse_key_value_line(buffer, event);
+    } else{
+        parsed = parse_delimited_line(buffer, event);
+    }
+
+    if(!parsed){
+        return 0;
+    }
+
+    trim_whitespace(event -> event_id);
+    trim_whitespace(event -> device);
+    trim_whitespace(event -> severity);
+    trim_whitespace(event -> status);
+    trim_whitespace(event -> source);
+
+    if(
+        event -> event_id[0] == '\0' ||
+        event -> device[0] == '\0' ||
+        event -> severity[0] == '\0' ||
+        event -> status[0] == '\0' 
+    ) {
+        return 0;
+    }
+
+    event -> is_valid = 1;
+    return 1;
+}
+
+void write_clean_file(const char *filename, SecurityEvent *events, int count){
+    FILE *out = fopen(filename, "w");
+    if(out == NULL){
+        printf("Erro na criação do arquivo de saída!\n");
+        return;
+    }
+
+    fprintf(out, "EVENT_ID;DEVICE;SEVERITY;STATUS;FAILED_LOGINS;SOURCE\n");
+
+    for(int i = 0; i < count; i++){
+        fprintf(out, "%s;%s;%s;%s;%d;%s\n",
+                events[i].event_id,
+                events[i].device,
+                events[i].severity,
+                events[i].status,
+                events[i].failed_logins,
+                events[i].source);
+    }
+    fclose(out);
+}
+
 
 int main(void) {
-    char line[] = "id=EVT-1014 ; device=ThinkCentre-M70s ; severity=critical ; status=analysis ; failed=9 ; source=soc_pipeline";
+
+
+
+
+    /*char line[] = "id=EVT-1014 ; device=ThinkCentre-M70s ; severity=critical ; status=analysis ; failed=9 ; source=soc_pipeline";
     SecurityEvent event;
 
     init_event(&event);
@@ -264,7 +352,8 @@ int main(void) {
     }
 
     return 0;
-}
+    */
+
 
     /*
     char line1[] = "EVT-1001 ; ThinkPad-T14 ; high ; open ; 5 ; auth_module";
@@ -316,7 +405,7 @@ int main(void) {
 
     */
 
-    /*
+    
      //Abrir o arquivo e ler linha por linha
     FILE *file = fopen("data/raw_security_events.txt", "r");
 
@@ -325,19 +414,65 @@ int main(void) {
         return 1;
     }
 
-    char line[512];
+    int capacity = 10;
+    int valid_count = 0;
     int total_lines = 0;
+    int invalid_count = 0;
+
+    SecurityEvent *events = malloc(capacity * sizeof(SecurityEvent));
+    if(events == NULL){
+        printf("Problema de alocação de memória!\n");
+        fclose(file);
+        return 1;
+    }
+
+    char line[512];
 
     while(fgets(line, sizeof(line), file) != NULL){
         total_lines ++;
-        printf("Linha %d: %s", total_lines, line);   
+        // printf("Linha %d: %s", total_lines, line);  
+        if(is_blank_line(line)){
+            continue;
+        }
+
+        SecurityEvent event;
+        init_event(&event);
+
+        if(parse_line_to_event(line, &event)){
+            if(valid_count == capacity){
+                capacity = capacity * 2;
+                SecurityEvent *temp = realloc(events, capacity *sizeof(SecurityEvent));
+
+                if(temp == NULL){
+                    printf("Problema de redimensionamento de memória!\n");
+                    free(events);
+                    fclose(file);
+                    return 1;
+                }
+                events = temp;
+            }
+
+            events[valid_count] = event;
+            valid_count++;
+        } else{
+
+            invalid_count++;
+            
+        }
     }
 
     fclose(file); // Desconecta e devolve o recurso ao sistema
 
+    write_clean_file("data/security_events_cleaned.txt", events, valid_count);
+
     printf("\nTotal de linhas lidas: %d\n", total_lines);
+    printf("Registros válidos: %d\n", valid_count);
+    printf("Registros inválidos: %d\n", invalid_count);
+
+    free(events);
+    events = NULL;
 
     return 0;
 
-    */
+}
 
